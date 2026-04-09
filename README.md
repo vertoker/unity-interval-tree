@@ -1,4 +1,4 @@
-# Jamarino.IntervalTree
+﻿# vertoker.UnityIntervalTree (based on [jamarino.IntervalTree](https://github.com/jamarino/IntervalTree))
 
 Light-weight, performant interval trees written in C#.
 
@@ -116,21 +116,21 @@ A few key design decisions were made to reduce the memory usage.
 
 1. Avoid keeping duplicate data
 
-    `RangeTree` keeps a full, unused copy of intervals, in case the tree needs to be rebuilt following the addition or removal of an interval. This wastes memory.
-    `LightIntervalTree` only stores intervals once, embedding tree information directly into the stored intervals. `QuickIntervalTree` directly uses the stored intervals, but also duplicates part of the intervals in order to store a reverse-order, needed to optimize searching.
+   `RangeTree` keeps a full, unused copy of intervals, in case the tree needs to be rebuilt following the addition or removal of an interval. This wastes memory.
+   `LightIntervalTree` only stores intervals once, embedding tree information directly into the stored intervals. `QuickIntervalTree` directly uses the stored intervals, but also duplicates part of the intervals in order to store a reverse-order, needed to optimize searching.
 
 1. Model tree nodes as value types (`struct`) rather than objects (`class`)
 
-    Objects suffer memory overhead in the form of type and method information. Since `struct`s cannot reference their own type (to form a tree) an index (`int`) is used to reference other nodes by index.
+   Objects suffer memory overhead in the form of type and method information. Since `struct`s cannot reference their own type (to form a tree) an index (`int`) is used to reference other nodes by index.
 
 1. Store nodes and intervals in indexable arrays, use indexes rather than references as pointers
 
-    Pointers in 64-bit systems take up 8 bytes of storage, `int`s only take 4 bytes. Storing value types in Lists/Arrays improves CPU caching since elements are co-located in memory.
+   Pointers in 64-bit systems take up 8 bytes of storage, `int`s only take 4 bytes. Storing value types in Lists/Arrays improves CPU caching since elements are co-located in memory.
 
 1. Nodes reference their intervals by index and length
 
-    `RangeTree` allocates an array for each node to store intervals in. This project keeps all intervals in a single array. All related intervals are grouped, and each node keeps an index and count to point to the related intervals. This approach eliminates the overhead of small array allocations.
+   `RangeTree` allocates an array for each node to store intervals in. This project keeps all intervals in a single array. All related intervals are grouped, and each node keeps an index and count to point to the related intervals. This approach eliminates the overhead of small array allocations.
 
 1. Iterative searching
 
-    `RangeTree`, as well as early versions of this project, uses recursion to search smaller and smaller subtrees, eventually propagating results back up to the initial caller. Each method call, however, incurs some overhead from pushing the same arguments to the stack repeatedly. Newer version of this project use an iterative depth-first-search algorithm, backed by a small stack-allocated buffer for tracking progress. This speeds up querying without adding any heap allocations.
+   `RangeTree`, as well as early versions of this project, uses recursion to search smaller and smaller subtrees, eventually propagating results back up to the initial caller. Each method call, however, incurs some overhead from pushing the same arguments to the stack repeatedly. Newer version of this project use an iterative depth-first-search algorithm, backed by a small stack-allocated buffer for tracking progress. This speeds up querying without adding any heap allocations.

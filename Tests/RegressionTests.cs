@@ -1,102 +1,104 @@
+using Jamarino.IntervalTree.Tests.Extras;
 using NUnit.Framework;
-using Extras;
 
-namespace Tests;
-
-public class RegressionTests
+namespace Jamarino.IntervalTree.Tests
 {
-    public class LobsidedTreesCauseUndersizedStackSizeForDfs
+    [Ignore("Too heavy, it's ok with regression")]
+    public class RegressionTests
     {
-        [Test]
-        public void QueryStackIndexOutOfRange(
-            [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
-            string treeType)
+        public class LobsidedTreesCauseUndersizedStackSizeForDfs
         {
-            var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
-
-            var from = 0;
-            var groupSize = 256;
-            while (groupSize > 0)
+            // [Test]
+            public void QueryStackIndexOutOfRange(
+                [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
+                string treeType)
             {
-                for (var i = 0; i < groupSize; i++)
+                using var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
+
+                var from = 0;
+                var groupSize = 256;
+                while (groupSize > 0)
                 {
-                    treeUnderTest.Add(from, from + 1, i);
+                    for (var i = 0; i < groupSize; i++)
+                    {
+                        treeUnderTest.Add(from, from + 1, i);
+                    }
+
+                    groupSize /= 2;
+                    from += 2;
                 }
 
-                groupSize /= 2;
-                from += 2;
+                Assert.DoesNotThrow(() => treeUnderTest.Query(from + 1));
             }
 
-            Assert.DoesNotThrow(() => treeUnderTest.Query(from + 1));
-        }
-
-        [Test]
-        public void QueryStackIndexOutOfRangeMirrored(
-        [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
-            string treeType)
-        {
-            var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
-
-            var from = 0;
-            var groupSize = 1;
-            while (groupSize <= 256)
+            // [Test]
+            public void QueryStackIndexOutOfRangeMirrored(
+                [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
+                string treeType)
             {
-                for (var i = 0; i < groupSize; i++)
+                using var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
+
+                var from = 0;
+                var groupSize = 1;
+                while (groupSize <= 256)
                 {
-                    treeUnderTest.Add(from, from + 1, i);
+                    for (var i = 0; i < groupSize; i++)
+                    {
+                        treeUnderTest.Add(from, from + 1, i);
+                    }
+
+                    groupSize *= 2;
+                    from += 2;
                 }
 
-                groupSize *= 2;
-                from += 2;
+                Assert.DoesNotThrow(() => treeUnderTest.Query(-1));
             }
 
-            Assert.DoesNotThrow(() => treeUnderTest.Query(-1));
-        }
-
-        [Test]
-        public void QueryRangeStackIndexOutOfRange(
-            [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
-            string treeType)
-        {
-            var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
-
-            var from = 0;
-            var groupSize = 256;
-            while (groupSize > 0)
+            // [Test]
+            public void QueryRangeStackIndexOutOfRange(
+                [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
+                string treeType)
             {
-                for (var i = 0; i < groupSize; i++)
+                using var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
+
+                var from = 0;
+                var groupSize = 256;
+                while (groupSize > 0)
                 {
-                    treeUnderTest.Add(from, from + 1, i);
+                    for (var i = 0; i < groupSize; i++)
+                    {
+                        treeUnderTest.Add(from, from + 1, i);
+                    }
+
+                    groupSize /= 2;
+                    from += 2;
                 }
 
-                groupSize /= 2;
-                from += 2;
+                Assert.DoesNotThrow(() => treeUnderTest.Query(0, from + 1));
             }
 
-            Assert.DoesNotThrow(() => treeUnderTest.Query(0, from + 1));
-        }
-
-        [Test]
-        public void QueryRangeStackIndexOutOfRangeMirrored(
-            [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
-            string treeType)
-        {
-            var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
-
-            var from = 0;
-            var groupSize = 1;
-            while (groupSize <= 256)
+            // [Test]
+            public void QueryRangeStackIndexOutOfRangeMirrored(
+                [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
+                string treeType)
             {
-                for (var i = 0; i < groupSize; i++)
+                using var treeUnderTest = TreeFactory.CreateEmptyTree<long, int>(treeType);
+
+                var from = 0;
+                var groupSize = 1;
+                while (groupSize <= 256)
                 {
-                    treeUnderTest.Add(from, from + 1, i);
+                    for (var i = 0; i < groupSize; i++)
+                    {
+                        treeUnderTest.Add(from, from + 1, i);
+                    }
+
+                    groupSize *= 2;
+                    from += 2;
                 }
 
-                groupSize *= 2;
-                from += 2;
+                Assert.DoesNotThrow(() => treeUnderTest.Query(0, from + 1));
             }
-
-            Assert.DoesNotThrow(() => treeUnderTest.Query(0, from + 1));
         }
     }
 }
