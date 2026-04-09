@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Jamarino.IntervalTree
+namespace vertoker.UnityIntervalTree
 {
     public interface IBuildIntervalTree<TKey, TValue> : IIntervalTree<TKey, TValue>
         where TKey : IComparable<TKey>

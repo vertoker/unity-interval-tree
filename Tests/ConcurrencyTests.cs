@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Jamarino.IntervalTree.Tests.Extras;
 using NUnit.Framework;
+using vertoker.UnityIntervalTree.Tests.Extras;
 
-namespace Jamarino.IntervalTree.Tests
+namespace vertoker.UnityIntervalTree.Tests
 {
     public class ConcurrencyTests
     {

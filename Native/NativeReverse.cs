@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Jamarino.IntervalTree.Native
+namespace vertoker.UnityIntervalTree.Native
 {
     public static class NativeReverseExtension
     {

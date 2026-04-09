@@ -1,6 +1,6 @@
 {
-    "name": "Jamarino.IntervalTree",
-    "rootNamespace": "Jamarino.IntervalTree",
+    "name": "vertoker.UnityIntervalTree",
+    "rootNamespace": "vertoker.UnityIntervalTree",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Jamarino.IntervalTree.Tests.Extras
+namespace vertoker.UnityIntervalTree.Tests.Extras
 {
     public class TreeAdapter<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : IComparable<TKey>

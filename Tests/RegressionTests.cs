@@ -1,7 +1,7 @@
-using Jamarino.IntervalTree.Tests.Extras;
 using NUnit.Framework;
+using vertoker.UnityIntervalTree.Tests.Extras;
 
-namespace Jamarino.IntervalTree.Tests
+namespace vertoker.UnityIntervalTree.Tests
 {
     [Ignore("Too heavy, it's ok with regression")]
     public class RegressionTests

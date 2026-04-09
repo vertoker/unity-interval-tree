@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Jamarino.IntervalTree
+namespace vertoker.UnityIntervalTree
 {
     /// <summary>
     /// Light-weight interval tree implementation, based on an augmented interval tree.

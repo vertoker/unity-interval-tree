@@ -1,9 +1,9 @@
 {
-    "name": "Jamarino.IntervalTree.Tests",
-    "rootNamespace": "Jamarino.IntervalTree.Tests",
+    "name": "vertoker.UnityIntervalTree.Tests",
+    "rootNamespace": "vertoker.UnityIntervalTree.Tests",
     "references": [
-        "Jamarino.IntervalTree",
-        "Jamarino.IntervalTree.Native"
+        "vertoker.UnityIntervalTree",
+        "vertoker.UnityIntervalTree.Native"
     ],
     "includePlatforms": [
         "Editor"

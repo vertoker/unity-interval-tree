@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Jamarino.IntervalTree.Native;
 using Unity.Collections;
+using vertoker.UnityIntervalTree.Native;
 
-namespace Jamarino.IntervalTree.Tests.Extras
+namespace vertoker.UnityIntervalTree.Tests.Extras
 {
     public static class TreeFactory
     {

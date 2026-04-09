@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Jamarino.IntervalTree
+namespace vertoker.UnityIntervalTree
 {
     /// <summary>
     /// Simple implementation using full scans of an unordered array, not actually a tree. O(n) queries.

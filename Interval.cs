@@ -1,6 +1,6 @@
 using System;
 
-namespace Jamarino.IntervalTree
+namespace vertoker.UnityIntervalTree
 {
     public readonly struct Interval<TKey, TValue> : IComparable<Interval<TKey, TValue>>
         where TKey : IComparable<TKey>

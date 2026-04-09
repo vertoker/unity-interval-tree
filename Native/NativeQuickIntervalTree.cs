@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 
-namespace Jamarino.IntervalTree.Native
+namespace vertoker.UnityIntervalTree.Native
 {
     /// <summary>
     /// Query-optimized interval tree. Implementation is based on a centered interval tree.

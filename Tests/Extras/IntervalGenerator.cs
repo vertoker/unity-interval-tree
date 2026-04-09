@@ -1,6 +1,6 @@
 using System;
 
-namespace Jamarino.IntervalTree.Tests.Extras
+namespace vertoker.UnityIntervalTree.Tests.Extras
 {
     public static class IntervalGenerator
     {

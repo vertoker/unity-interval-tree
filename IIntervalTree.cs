@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Jamarino.IntervalTree
+namespace vertoker.UnityIntervalTree
 {
     public interface IIntervalTree<TKey, TValue> : IEnumerable<Interval<TKey, TValue>>, IDisposable
         where TKey : IComparable<TKey>

@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using Jamarino.IntervalTree.Tests.Extras;
 using NUnit.Framework;
+using vertoker.UnityIntervalTree.Tests.Extras;
 
-namespace Jamarino.IntervalTree.Tests
+namespace vertoker.UnityIntervalTree.Tests
 {
     public class CompatibilityTests
     { 
@@ -20,7 +20,7 @@ namespace Jamarino.IntervalTree.Tests
 
             var intervals = Enumerable.Range(0, random.Next(2, IntervalMaxCount))
                 .Select(_ => random.Next(0, IntervalMax))
-                .Select((from, i) => new Jamarino.IntervalTree.Interval<long, int>(from, from + random.Next(1, IntervalMax), i))
+                .Select((from, i) => new Interval<long, int>(from, from + random.Next(1, IntervalMax), i))
                 .ToList();
 
             using var originalTree = TreeFactory.CreateEmptyTree<long, int>("reference");
@@ -54,7 +54,7 @@ namespace Jamarino.IntervalTree.Tests
 
             var intervals = Enumerable.Range(0, random.Next(2, IntervalMaxCount))
                 .Select(_ => random.Next(0, IntervalMax))
-                .Select((from, i) => new Jamarino.IntervalTree.Interval<long, int>(from, from + random.Next(1, IntervalMax), i))
+                .Select((from, i) => new Interval<long, int>(from, from + random.Next(1, IntervalMax), i))
                 .ToList();
 
             using var originalTree = TreeFactory.CreateEmptyTree<long, int>("reference");
