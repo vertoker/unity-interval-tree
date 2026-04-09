@@ -12,7 +12,7 @@ namespace Jamarino.IntervalTree.Native
     /// </summary>
     /// <typeparam name="TKey">Type used to specify the start and end of each intervals</typeparam>
     /// <typeparam name="TValue">Type of the value associated with each interval</typeparam>
-    public unsafe struct NativeQuickIntervalTree<TKey, TValue> : IIntervalTree<TKey, TValue>
+    public unsafe struct NativeQuickIntervalTree<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         private NativeList<Interval<TKey, TValue>> _intervals;
@@ -72,8 +72,7 @@ namespace Jamarino.IntervalTree.Native
             if (high.CompareTo(low) < 0)
                 throw new ArgumentException("Argument 'high' must not be smaller than argument 'low'", nameof(high));
 
-            if (!_isBuilt)
-                Build();
+            if (!_isBuilt) Build();
 
             List<TValue> result = null;
 
@@ -169,8 +168,7 @@ namespace Jamarino.IntervalTree.Native
             if (high.CompareTo(low) < 0)
                 throw new ArgumentException("Argument 'high' must not be smaller than argument 'low'", nameof(high));
 
-            if (!_isBuilt)
-                Build();
+            if (!_isBuilt) Build();
 
             result.Clear();
             Span<int> stack = stackalloc int[_treeHeight];
@@ -255,10 +253,6 @@ namespace Jamarino.IntervalTree.Native
             }
         }
         
-        /// <summary>
-        /// Build the underlying tree structure.
-        /// A build is automatically performed, if needed, on the first query after altering the tree.
-        /// </summary>
         public void Build()
         {
             if (_isBuilt) return;

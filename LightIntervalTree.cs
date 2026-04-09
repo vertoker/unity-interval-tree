@@ -10,10 +10,9 @@ namespace Jamarino.IntervalTree
     /// </summary>
     /// <typeparam name="TKey">Type used to specify the start and end of each intervals</typeparam>
     /// <typeparam name="TValue">Type of the value associated with each interval</typeparam>
-    public class LightIntervalTree<TKey, TValue> : IIntervalTree<TKey, TValue>
+    public class LightIntervalTree<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : IComparable<TKey>
     {
-        private readonly object _buildLock = new();
         private AugmentedInterval[] _intervals;
         private int _count = 0;
         private bool _isBuilt = false;
@@ -61,8 +60,7 @@ namespace Jamarino.IntervalTree
             if (high.CompareTo(low) < 0)
                 throw new ArgumentException("Argument 'high' must not be smaller than argument 'low'", nameof(high));
 
-            if (!_isBuilt)
-                Build();
+            if (!_isBuilt) Build();
 
             if (_count == 0)
                 return Enumerable.Empty<TValue>();
@@ -132,74 +130,67 @@ namespace Jamarino.IntervalTree
 
             return results is null ? Enumerable.Empty<TValue>() : results;
         }
-
-        /// <summary>
-        /// Build the underlying tree structure.
-        /// A build is automatically performed, if needed, on the first query after altering the tree.
-        /// </summary>
+        
         public void Build()
         {
-            lock (_buildLock)
+            if (_isBuilt) return;
+
+            if (_count is 0)
             {
-                if (_isBuilt) return;
-
-                if (_count is 0)
-                {
-                    _treeHeight = 0;
-                    _isBuilt = true;
-                    return;
-                }
-
-                // order intervals
-                Array.Sort(_intervals, 0, _count);
-                _treeHeight = (int)Math.Log(_count, 2) + 1;
-
-                UpdateMaxRec(0, _count - 1, 0);
-
+                _treeHeight = 0;
                 _isBuilt = true;
+                return;
             }
 
-            TKey UpdateMaxRec(int min, int max, int recursionLevel)
-            {
-                if (recursionLevel++ > 100)
-                    throw new InvalidOperationException($"Excessive recursion detected, aborting to prevent stack overflow. Please check thread safety.");
+            // order intervals
+            Array.Sort(_intervals, 0, _count);
+            _treeHeight = (int)Math.Log(_count, 2) + 1;
 
-                var center = min + (max - min + 1) / 2;
+            UpdateMaxRec(0, _count - 1, 0);
 
-                var interval = _intervals[center];
-
-                if (max - min <= 0)
-                {
-                    // set max to 'To'
-                    var interval2 = interval;
-                    interval2.Max = interval.To;
-                    _intervals[center] = interval2;
-                    return interval.To;
-                }
-                else
-                {
-                    // find max between children and own 'To'
-                    var maxValue = interval.To;
-
-                    var left = UpdateMaxRec(min, center - 1, recursionLevel);
-                    var right = center < max ?
-                        UpdateMaxRec(center + 1, max, recursionLevel) :
-                        maxValue;
-
-                    if (left.CompareTo(maxValue) > 0)
-                        maxValue = left;
-                    if (right.CompareTo(maxValue) > 0)
-                        maxValue = right;
-
-                    // update max
-                    var interval2 = interval;
-                    interval2.Max = maxValue;
-                    _intervals[center] = interval2;
-                    return maxValue;
-                }
-            }
+            _isBuilt = true;
         }
 
+        private TKey UpdateMaxRec(int min, int max, int recursionLevel)
+        {
+            if (recursionLevel++ > 100)
+                throw new InvalidOperationException($"Excessive recursion detected, aborting to prevent stack overflow. Please check thread safety.");
+
+            var center = min + (max - min + 1) / 2;
+
+            var interval = _intervals[center];
+
+            if (max - min <= 0)
+            {
+                // set max to 'To'
+                var interval2 = interval;
+                interval2.Max = interval.To;
+                _intervals[center] = interval2;
+                return interval.To;
+            }
+            else
+            {
+                // find max between children and own 'To'
+                var maxValue = interval.To;
+
+                var left = UpdateMaxRec(min, center - 1, recursionLevel);
+                var right = center < max ?
+                    UpdateMaxRec(center + 1, max, recursionLevel) :
+                    maxValue;
+
+                if (left.CompareTo(maxValue) > 0)
+                    maxValue = left;
+                if (right.CompareTo(maxValue) > 0)
+                    maxValue = right;
+
+                // update max
+                var interval2 = interval;
+                interval2.Max = maxValue;
+                _intervals[center] = interval2;
+                return maxValue;
+            }
+        }
+        
         public void Remove(TValue value)
         {
             RemoveAll(

@@ -11,10 +11,9 @@ namespace Jamarino.IntervalTree
     /// </summary>
     /// <typeparam name="TKey">Type used to specify the start and end of each intervals</typeparam>
     /// <typeparam name="TValue">Type of the value associated with each interval</typeparam>
-    public class QuickIntervalTree<TKey, TValue> : IIntervalTree<TKey, TValue>
+    public class QuickIntervalTree<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : IComparable<TKey>
     {
-        private readonly object _buildLock = new();
         private Interval<TKey, TValue>[] _intervals;
         private int _intervalCount = 0;
         private IntervalHalf[] _intervalsDescending = Array.Empty<IntervalHalf>();
@@ -69,8 +68,7 @@ namespace Jamarino.IntervalTree
             if (high.CompareTo(low) < 0)
                 throw new ArgumentException("Argument 'high' must not be smaller than argument 'low'", nameof(high));
 
-            if (!_isBuilt)
-                Build();
+            if (!_isBuilt) Build();
 
             List<TValue> result = null;
 
@@ -255,144 +253,134 @@ namespace Jamarino.IntervalTree
             }
         }
         
-        /// <summary>
-        /// Build the underlying tree structure.
-        /// A build is automatically performed, if needed, on the first query after altering the tree.
-        /// </summary>
         public void Build()
         {
-            lock (_buildLock)
-            {
-                if (_isBuilt) return;
+            if (_isBuilt) return;
 
-                // reset tree
-                _nodes.Clear();
+            // reset tree
+            _nodes.Clear();
 
-                // Add 'null' node and root
-                _nodes.Add(new Node()); // 0-index: 'null'
-                _nodes.Add(new Node()); // 1-index: root
+            // Add 'null' node and root
+            _nodes.Add(new Node()); // 0-index: 'null'
+            _nodes.Add(new Node()); // 1-index: root
 
-                // ensure descending intervals array is large enough, but not too large
-                if (_intervalsDescending.Length < _intervals.Length ||
-                    _intervalsDescending.Length > 2 * _intervals.Length)
-                    _intervalsDescending = new IntervalHalf[_intervals.Length];
+            // ensure descending intervals array is large enough, but not too large
+            if (_intervalsDescending.Length < _intervals.Length ||
+                _intervalsDescending.Length > 2 * _intervals.Length)
+                _intervalsDescending = new IntervalHalf[_intervals.Length];
 
-                Array.Sort(_intervals, 0, _intervalCount);
+            Array.Sort(_intervals, 0, _intervalCount);
 
-                BuildRec(0, _intervalCount - 1, 1, 0);
+            BuildRec(0, _intervalCount - 1, 1, 0);
 
-                _treeHeight = _intervalCount <= 1
-                    ? 1
-                    : (int)Math.Log(_intervalCount, 2) + 1;
+            _treeHeight = _intervalCount <= 1
+                ? 1
+                : (int)Math.Log(_intervalCount, 2) + 1;
 
-                _isBuilt = true;
-            }
-
-            void BuildRec(int min, int max, int nodeIndex, int recursionLevel)
-            {
-                if (recursionLevel++ > 100)
-                    throw new InvalidOperationException($"Excessive recursion detected, aborting to prevent stack overflow. Please check thread safety.");
-
-                var sliceWidth = max - min + 1;
-
-                if (sliceWidth <= 0) return;
-
-                var centerIndex = min + sliceWidth / 2;
-
-                // Pick Center value
-                var centerValue = _intervals[centerIndex].From;
-
-                // Move index if multiple intervals share same 'From' value
-                while (centerIndex < max
-                       && centerValue.CompareTo(_intervals[centerIndex + 1].From) == 0)
-                {
-                    centerIndex++;
-                }
-
-                // Iterate through intervals and pick the ones that overlap
-                var i = min;
-                var nodeIntervalCount = 0;
-                for (; i <= max; i++)
-                {
-                    var interval = _intervals[i];
-
-                    if (interval.From.CompareTo(centerValue) > 0)
-                    {
-                        // no more overlapping intervals, the rest fall to right side
-                        break;
-                    }
-                    else if (interval.To.CompareTo(centerValue) >= 0)
-                    {
-                        // overlapping interval, add the desending half later
-                        nodeIntervalCount++;
-                    }
-                    else
-                    {
-                        if (nodeIntervalCount > 0)
-                        {
-                            // swap current interval with first 'center' interval
-                            // this partitions the array so that all 'left' and 'center' intervals are grouped
-                            // 'left' interval ordering is maintained (ascending)
-                            // no data is lost, so we can work directly on the interval array and re-build in future
-                            var tmp = _intervals[i - nodeIntervalCount];
-                            _intervals[i - nodeIntervalCount] = interval;
-                            _intervals[i] = tmp;
-                        }
-                    }
-                }
-
-                var nodeIntervalIndex = i - nodeIntervalCount;
-
-                // re-sort 'center' intervals
-                Array.Sort(
-                    _intervals,
-                    nodeIntervalIndex,
-                    nodeIntervalCount);
-
-                // add descending interval halves
-
-                for (var j = nodeIntervalIndex; j < nodeIntervalIndex + nodeIntervalCount; j++)
-                {
-                    var interval = _intervals[j];
-                    _intervalsDescending[j] = new IntervalHalf(interval.To, j);
-                }
-
-                // sort descending interval halves
-                Array.Sort(_intervalsDescending, nodeIntervalIndex, nodeIntervalCount);
-                Array.Reverse(_intervalsDescending, nodeIntervalIndex, nodeIntervalCount);
-
-                if (nodeIntervalCount == sliceWidth)
-                {
-                    // all intervals stored, no need to recurse further
-                    _nodes[nodeIndex] = new Node(
-                        centerValue,
-                        next: 0,
-                        nodeIntervalIndex,
-                        nodeIntervalCount);
-                    return;
-                }
-
-                var nextIndex = _nodes.Count;
-
-                // add node
-                _nodes[nodeIndex] = new Node(
-                    centerValue,
-                    nextIndex,
-                    nodeIntervalIndex,
-                    nodeIntervalCount);
-
-                // add two placeholder nodes to fixate the child indexes
-                _nodes.Add(new Node());
-                _nodes.Add(new Node());
-
-                // left
-                BuildRec(min, i - nodeIntervalCount - 1, nextIndex, recursionLevel);
-
-                // right
-                BuildRec(i, max, nextIndex + 1, recursionLevel);
-            }
+            _isBuilt = true;
         }
 
+        void BuildRec(int min, int max, int nodeIndex, int recursionLevel)
+        {
+            if (recursionLevel++ > 100)
+                throw new InvalidOperationException($"Excessive recursion detected, aborting to prevent stack overflow. Please check thread safety.");
+
+            var sliceWidth = max - min + 1;
+
+            if (sliceWidth <= 0) return;
+
+            var centerIndex = min + sliceWidth / 2;
+
+            // Pick Center value
+            var centerValue = _intervals[centerIndex].From;
+
+            // Move index if multiple intervals share same 'From' value
+            while (centerIndex < max
+                   && centerValue.CompareTo(_intervals[centerIndex + 1].From) == 0)
+            {
+                centerIndex++;
+            }
+
+            // Iterate through intervals and pick the ones that overlap
+            var i = min;
+            var nodeIntervalCount = 0;
+            for (; i <= max; i++)
+            {
+                var interval = _intervals[i];
+
+                if (interval.From.CompareTo(centerValue) > 0)
+                {
+                    // no more overlapping intervals, the rest fall to right side
+                    break;
+                }
+                else if (interval.To.CompareTo(centerValue) >= 0)
+                {
+                    // overlapping interval, add the desending half later
+                    nodeIntervalCount++;
+                }
+                else
+                {
+                    if (nodeIntervalCount > 0)
+                    {
+                        // swap current interval with first 'center' interval
+                        // this partitions the array so that all 'left' and 'center' intervals are grouped
+                        // 'left' interval ordering is maintained (ascending)
+                        // no data is lost, so we can work directly on the interval array and re-build in future
+                        var tmp = _intervals[i - nodeIntervalCount];
+                        _intervals[i - nodeIntervalCount] = interval;
+                        _intervals[i] = tmp;
+                    }
+                }
+            }
+
+            var nodeIntervalIndex = i - nodeIntervalCount;
+
+            // re-sort 'center' intervals
+            Array.Sort(
+                _intervals,
+                nodeIntervalIndex,
+                nodeIntervalCount);
+
+            // add descending interval halves
+
+            for (var j = nodeIntervalIndex; j < nodeIntervalIndex + nodeIntervalCount; j++)
+            {
+                var interval = _intervals[j];
+                _intervalsDescending[j] = new IntervalHalf(interval.To, j);
+            }
+
+            // sort descending interval halves
+            Array.Sort(_intervalsDescending, nodeIntervalIndex, nodeIntervalCount);
+            Array.Reverse(_intervalsDescending, nodeIntervalIndex, nodeIntervalCount);
+
+            if (nodeIntervalCount == sliceWidth)
+            {
+                // all intervals stored, no need to recurse further
+                _nodes[nodeIndex] = new Node(
+                    centerValue,
+                    next: 0,
+                    nodeIntervalIndex,
+                    nodeIntervalCount);
+                return;
+            }
+
+            var nextIndex = _nodes.Count;
+
+            // add node
+            _nodes[nodeIndex] = new Node(
+                centerValue,
+                nextIndex,
+                nodeIntervalIndex,
+                nodeIntervalCount);
+
+            // add two placeholder nodes to fixate the child indexes
+            _nodes.Add(new Node());
+            _nodes.Add(new Node());
+            
+            BuildRec(min, i - nodeIntervalCount - 1, nextIndex, recursionLevel); // left
+            BuildRec(i, max, nextIndex + 1, recursionLevel); // right
+        }
+            
         public void Remove(TValue value)
         {
             RemoveAll(

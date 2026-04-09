@@ -46,7 +46,8 @@ namespace Jamarino.IntervalTree.Tests.Extras
                     "linear" => new LinearIntervalTree<TKey, TValue>(),
                     "light" => new LightIntervalTree<TKey, TValue>(),
                     "quick" => new QuickIntervalTree<TKey, TValue>(),
-                    "native-quick" => new NativeQuickIntervalTree<TKey, TValue>(Allocator.Temp),
+                    // persistent because exists tests for concurrency
+                    "native-quick" => new NativeQuickIntervalTree<TKey, TValue>(Allocator.Persistent),
                     _ => throw new ArgumentException($"Unknown tree type: {type}", nameof(type))
                 };
             }
@@ -57,7 +58,8 @@ namespace Jamarino.IntervalTree.Tests.Extras
                 "linear" => new LinearIntervalTree<TKey, TValue>(capacity),
                 "light" => new LightIntervalTree<TKey, TValue>(capacity),
                 "quick" => new QuickIntervalTree<TKey, TValue>(capacity),
-                "native-quick" => new NativeQuickIntervalTree<TKey, TValue>(capacity.Value, Allocator.Temp),
+                // persistent because exists tests for concurrency
+                "native-quick" => new NativeQuickIntervalTree<TKey, TValue>(capacity.Value, Allocator.Persistent),
                 _ => throw new ArgumentException($"Unknown tree type: {type}", nameof(type))
             };
         }

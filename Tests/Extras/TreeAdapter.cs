@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace Jamarino.IntervalTree.Tests.Extras
 {
-    public class TreeAdapter<TKey, TValue> : IIntervalTree<TKey, TValue>
+    public class TreeAdapter<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : IComparable<TKey>
     {
-        public TreeAdapter(Jamarino.IntervalTree.IIntervalTree<TKey, TValue> lightTree)
+        public TreeAdapter(IIntervalTree<TKey, TValue> lightTree)
         {
             LightTree = lightTree;
         }
@@ -17,7 +17,7 @@ namespace Jamarino.IntervalTree.Tests.Extras
 
         public int Count => LightTree.Count;
 
-        public Jamarino.IntervalTree.IIntervalTree<TKey, TValue> LightTree { get; }
+        public IIntervalTree<TKey, TValue> LightTree { get; }
 
         public void Add(TKey from, TKey to, TValue value) => LightTree.Add(from, to, value);
 
@@ -27,7 +27,13 @@ namespace Jamarino.IntervalTree.Tests.Extras
         }
 
         public void Clear() => LightTree.Clear();
-        
+
+        public void Build()
+        {
+            if (LightTree is IBuildIntervalTree<TKey, TValue> buildIntervalTree)
+                buildIntervalTree.Build();
+        }
+
         public IEnumerator<Interval<TKey, TValue>> GetEnumerator() =>
             LightTree
                 .Select(i => new Interval<TKey, TValue>(i.From, i.To, i.Value))

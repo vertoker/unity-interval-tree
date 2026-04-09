@@ -1,6 +1,6 @@
-﻿# vertoker.UnityIntervalTree (based on [jamarino.IntervalTree](https://github.com/jamarino/IntervalTree))
+﻿# vertoker.UnityIntervalTree
 
-Light-weight, performant interval trees written in C#.
+Light-weight, performant interval trees written in C# for Unity. Based on [jamarino.IntervalTree](https://github.com/jamarino/IntervalTree), adapted by vertoker
 
 Designed as a drop-in replacement for the popular [RangeTree (GitHub)](https://github.com/mbuchetics/RangeTree) package. This project provides a completely new implementation that is, from scratch, focused on reducing memory usage and allocations.
 
@@ -99,8 +99,13 @@ Any modifications, adding/clearing/removing intervals, require exclusive access,
 It is up to the consumer to enforce synchronization controls.
 Consider using something like [ReaderWriterLockSlim (Microsoft)](https://docs.microsoft.com/en-us/dotnet/api/system.threading.readerwriterlockslim).
 
-To reduce the risk of significant problems stemming from misuse, a lock statement has been added to block concurrent initializations. This should prevent issues in cases where a tree is not initialised before being queried concurrently, however, this safety is is not guaranteed. Please take care to follow the advice above.
+There is no lock or any thread syncronization, **read is thread-safe, write is not. Build before use trees**
 
+## Unity Enhancements
+
+- Added `Native` version for each tree, updated tests and rewritten some code for optimization
+- Also remove all locks from original trees, it makes more clear: you need to build trees before use it
+- add `.asmdef` files
 
 ## TODOs
 

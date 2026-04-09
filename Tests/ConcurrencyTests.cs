@@ -35,6 +35,12 @@ namespace Jamarino.IntervalTree.Tests
                 }
             }
 
+            foreach (var tree in trees)
+            {
+                if (tree is IBuildIntervalTree<long, int> buildIntervalTree)
+                    buildIntervalTree.Build();
+            }
+            
             // init tree #0 as control
             trees[0].Query(1);
 
