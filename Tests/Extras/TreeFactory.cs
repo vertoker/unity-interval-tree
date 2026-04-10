@@ -8,11 +8,13 @@ namespace vertoker.UnityIntervalTree.Tests.Extras
 {
     public static class TreeFactory
     {
-        public static IEnumerable<string> TreeTypes = new string[] {
+        public static readonly IEnumerable<string> TreeTypes = new string[] {
             "reference",
             "linear",
             "light",
             "quick",
+            "native-linear",
+            "native-light",
             "native-quick",
         };
 
@@ -47,6 +49,8 @@ namespace vertoker.UnityIntervalTree.Tests.Extras
                     "light" => new LightIntervalTree<TKey, TValue>(),
                     "quick" => new QuickIntervalTree<TKey, TValue>(),
                     // persistent because exists tests for concurrency
+                    "native-linear" => new NativeLinearIntervalTree<TKey, TValue>(Allocator.Persistent),
+                    "native-light" => new NativeLightIntervalTree<TKey, TValue>(Allocator.Persistent),
                     "native-quick" => new NativeQuickIntervalTree<TKey, TValue>(Allocator.Persistent),
                     _ => throw new ArgumentException($"Unknown tree type: {type}", nameof(type))
                 };
@@ -59,6 +63,8 @@ namespace vertoker.UnityIntervalTree.Tests.Extras
                 "light" => new LightIntervalTree<TKey, TValue>(capacity),
                 "quick" => new QuickIntervalTree<TKey, TValue>(capacity),
                 // persistent because exists tests for concurrency
+                "native-linear" => new NativeLinearIntervalTree<TKey, TValue>(capacity.Value, Allocator.Persistent),
+                "native-light" => new NativeLightIntervalTree<TKey, TValue>(capacity.Value, Allocator.Persistent),
                 "native-quick" => new NativeQuickIntervalTree<TKey, TValue>(capacity.Value, Allocator.Persistent),
                 _ => throw new ArgumentException($"Unknown tree type: {type}", nameof(type))
             };

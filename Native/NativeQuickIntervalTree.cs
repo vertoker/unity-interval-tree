@@ -49,7 +49,6 @@ namespace vertoker.UnityIntervalTree.Native
         }
 
         public IEnumerator<Interval<TKey, TValue>> GetEnumerator() => _intervals.GetEnumerator();
-
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Add(TKey from, TKey to, TValue value)

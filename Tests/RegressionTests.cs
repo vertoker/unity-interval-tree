@@ -3,12 +3,11 @@ using vertoker.UnityIntervalTree.Tests.Extras;
 
 namespace vertoker.UnityIntervalTree.Tests
 {
-    [Ignore("Too heavy, it's ok with regression")]
     public class RegressionTests
     {
         public class LobsidedTreesCauseUndersizedStackSizeForDfs
         {
-            // [Test]
+            [Test]
             public void QueryStackIndexOutOfRange(
                 [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
                 string treeType)
@@ -31,7 +30,7 @@ namespace vertoker.UnityIntervalTree.Tests
                 Assert.DoesNotThrow(() => treeUnderTest.Query(from + 1));
             }
 
-            // [Test]
+            [Test]
             public void QueryStackIndexOutOfRangeMirrored(
                 [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
                 string treeType)
@@ -54,7 +53,7 @@ namespace vertoker.UnityIntervalTree.Tests
                 Assert.DoesNotThrow(() => treeUnderTest.Query(-1));
             }
 
-            // [Test]
+            [Test]
             public void QueryRangeStackIndexOutOfRange(
                 [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
                 string treeType)
@@ -77,7 +76,7 @@ namespace vertoker.UnityIntervalTree.Tests
                 Assert.DoesNotThrow(() => treeUnderTest.Query(0, from + 1));
             }
 
-            // [Test]
+            [Test]
             public void QueryRangeStackIndexOutOfRangeMirrored(
                 [ValueSource(typeof(TreeFactory), nameof(TreeFactory.TreeTypesSansReference))]
                 string treeType)
