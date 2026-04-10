@@ -15,11 +15,11 @@ namespace vertoker.UnityIntervalTree.Native
     public unsafe struct NativeQuickIntervalTree<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
-        private NativeList<Interval<TKey, TValue>> _intervals;
-        private NativeList<IntervalHalf> _intervalsDescending;
-        private NativeList<Node> _nodes;
-        private int _treeHeight;
-        private bool _isBuilt;
+        internal NativeList<Interval<TKey, TValue>> Intervals;
+        internal NativeList<IntervalHalf> IntervalsDescending;
+        internal NativeList<Node> Nodes;
+        internal int TreeHeight;
+        internal bool IsBuilt;
 
         /// <inheritdoc cref="NativeQuickIntervalTree{TKey, TValue}"/>
         public NativeQuickIntervalTree(Allocator allocator) : this(32, allocator) { }
@@ -27,43 +27,39 @@ namespace vertoker.UnityIntervalTree.Native
         /// <inheritdoc cref="NativeQuickIntervalTree{TKey, TValue}"/>
         public NativeQuickIntervalTree(int initialCapacity, Allocator allocator)
         {
-            _intervals = new NativeList<Interval<TKey, TValue>>(initialCapacity, allocator);
+            Intervals = new NativeList<Interval<TKey, TValue>>(initialCapacity, allocator);
             
-            _intervalsDescending = new NativeList<IntervalHalf>(allocator);
-            _nodes = new NativeList<Node>(allocator);
+            IntervalsDescending = new NativeList<IntervalHalf>(allocator);
+            Nodes = new NativeList<Node>(allocator);
             
-            _treeHeight = 0;
-            _isBuilt = false;
+            TreeHeight = 0;
+            IsBuilt = false;
         }
 
-        public int Count => _intervals.Length;
+        public int Count => Intervals.Length;
 
         public IEnumerable<TValue> Values
         {
             get
             {
-                using var enumerator = _intervals.GetEnumerator();
+                using var enumerator = Intervals.GetEnumerator();
                 while (enumerator.MoveNext())
                     yield return enumerator.Current.Value;
             }
         }
 
-        public IEnumerator<Interval<TKey, TValue>> GetEnumerator() => _intervals.GetEnumerator();
+        public IEnumerator<Interval<TKey, TValue>> GetEnumerator() => Intervals.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Add(TKey from, TKey to, TValue value)
         {
-            _intervals.Add(new Interval<TKey, TValue>(from, to, value));
-            _isBuilt = false;
+            Intervals.Add(new Interval<TKey, TValue>(from, to, value));
+            IsBuilt = false;
         }
 
         public IEnumerable<TValue> Query(TKey target)
         {
             return Query(target, target);
-        }
-        public void Query(TKey target, ref NativeList<TValue> result)
-        {
-            Query(target, target, ref result);
         }
 
         public IEnumerable<TValue> Query(TKey low, TKey high)
@@ -71,11 +67,11 @@ namespace vertoker.UnityIntervalTree.Native
             if (high.CompareTo(low) < 0)
                 throw new ArgumentException("Argument 'high' must not be smaller than argument 'low'", nameof(high));
 
-            if (!_isBuilt) Build();
+            if (!IsBuilt) Build();
 
             List<TValue> result = null;
 
-            Span<int> stack = stackalloc int[_treeHeight];
+            Span<int> stack = stackalloc int[TreeHeight];
             stack[0] = 1;
             var stackIndex = 0;
 
@@ -83,7 +79,7 @@ namespace vertoker.UnityIntervalTree.Native
             {
                 var nodeIndex = stack[stackIndex--];
 
-                var node = _nodes[nodeIndex];
+                var node = Nodes[nodeIndex];
 
                 if (node.IntervalCount == 0) continue;
 
@@ -96,7 +92,7 @@ namespace vertoker.UnityIntervalTree.Native
                     // test node intervals for overlap
                     for (var i = node.IntervalIndex; i < node.IntervalIndex + node.IntervalCount; i++)
                     {
-                        var intv = _intervals[i];
+                        var intv = Intervals[i];
                         if (high.CompareTo(intv.From) >= 0)
                         {
                             result ??= new List<TValue>();
@@ -120,10 +116,10 @@ namespace vertoker.UnityIntervalTree.Native
                     // test node intervals for overlap
                     for (var i = node.IntervalIndex; i < node.IntervalIndex + node.IntervalCount; i++)
                     {
-                        var half = _intervalsDescending[i];
+                        var half = IntervalsDescending[i];
                         if (low.CompareTo(half.Start) <= 0)
                         {
-                            var full = _intervals[half.Index];
+                            var full = Intervals[half.Index];
                             result ??= new List<TValue>();
                             result.Add(full.Value);
                         }
@@ -144,7 +140,7 @@ namespace vertoker.UnityIntervalTree.Native
                     // add all node intervals
                     for (var i = node.IntervalIndex; i < node.IntervalIndex + node.IntervalCount; i++)
                     {
-                        var intv = _intervals[i];
+                        var intv = Intervals[i];
                         result ??= new List<TValue>();
                         result.Add(intv.Value);
                     }
@@ -162,121 +158,31 @@ namespace vertoker.UnityIntervalTree.Native
             return result ?? Enumerable.Empty<TValue>();
         }
         
-        public void Query(TKey low, TKey high, ref NativeList<TValue> result)
-        {
-            if (high.CompareTo(low) < 0)
-                throw new ArgumentException("Argument 'high' must not be smaller than argument 'low'", nameof(high));
-
-            if (!_isBuilt) Build();
-
-            result.Clear();
-            Span<int> stack = stackalloc int[_treeHeight];
-            stack[0] = 1;
-            var stackIndex = 0;
-
-            while (stackIndex >= 0)
-            {
-                var nodeIndex = stack[stackIndex--];
-
-                var node = _nodes[nodeIndex];
-
-                if (node.IntervalCount == 0) continue;
-
-                var compareLow = low.CompareTo(node.Center);
-                var compareHigh = high.CompareTo(node.Center);
-
-                if (compareHigh < 0)
-                {
-                    // look left
-                    // test node intervals for overlap
-                    for (var i = node.IntervalIndex; i < node.IntervalIndex + node.IntervalCount; i++)
-                    {
-                        var intv = _intervals[i];
-                        if (high.CompareTo(intv.From) >= 0)
-                        {
-                            result.Add(intv.Value);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    if (node.Next is not 0)
-                    {
-                        // queue left child
-                        stack[++stackIndex] = node.Next;
-                    }
-                }
-                else if (compareLow > 0)
-                {
-                    // look right
-                    // test node intervals for overlap
-                    for (var i = node.IntervalIndex; i < node.IntervalIndex + node.IntervalCount; i++)
-                    {
-                        var half = _intervalsDescending[i];
-                        if (low.CompareTo(half.Start) <= 0)
-                        {
-                            var full = _intervals[half.Index];
-                            result.Add(full.Value);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    if (node.Next is not 0)
-                    {
-                        // queue right child
-                        stack[++stackIndex] = node.Next + 1;
-                    }
-                }
-                else
-                {
-                    // add all node intervals
-                    for (var i = node.IntervalIndex; i < node.IntervalIndex + node.IntervalCount; i++)
-                    {
-                        var intv = _intervals[i];
-                        result.Add(intv.Value);
-                    }
-
-                    if (node.Next is not 0)
-                    {
-                        // queue left child
-                        stack[++stackIndex] = node.Next;
-                        // queue right child
-                        stack[++stackIndex] = node.Next + 1;
-                    }
-                }
-            }
-        }
-        
         public void Build()
         {
-            if (_isBuilt) return;
+            if (IsBuilt) return;
 
             // reset tree
-            _nodes.Clear();
+            Nodes.Clear();
 
             // Add 'null' node and root
-            _nodes.Add(new Node()); // 0-index: 'null'
-            _nodes.Add(new Node()); // 1-index: root
+            Nodes.Add(new Node()); // 0-index: 'null'
+            Nodes.Add(new Node()); // 1-index: root
 
             // ensure descending intervals array is large enough, but not too large
-            if (_intervalsDescending.Length < _intervals.Length ||
-                _intervalsDescending.Length > 2 * _intervals.Length)
-                _intervalsDescending.Resize(_intervals.Length, NativeArrayOptions.UninitializedMemory);
+            if (IntervalsDescending.Length < Intervals.Length ||
+                IntervalsDescending.Length > 2 * Intervals.Length)
+                IntervalsDescending.Resize(Intervals.Length, NativeArrayOptions.UninitializedMemory);
 
-            _intervals.Sort();
+            Intervals.Sort();
 
-            BuildRec(0, _intervals.Length - 1, 1, 0);
+            BuildRec(0, Intervals.Length - 1, 1, 0);
 
-            _treeHeight = _intervals.Length <= 1
+            TreeHeight = Intervals.Length <= 1
                 ? 1
-                : (int)Math.Log(_intervals.Length, 2) + 1;
+                : (int)Math.Log(Intervals.Length, 2) + 1;
 
-            _isBuilt = true;
+            IsBuilt = true;
         }
         
         void BuildRec(int min, int max, int nodeIndex, int recursionLevel)
@@ -291,11 +197,11 @@ namespace vertoker.UnityIntervalTree.Native
             var centerIndex = min + sliceWidth / 2;
 
             // Pick Center value
-            var centerValue = _intervals[centerIndex].From;
+            var centerValue = Intervals[centerIndex].From;
 
             // Move index if multiple intervals share same 'From' value
             while (centerIndex < max
-                   && centerValue.CompareTo(_intervals[centerIndex + 1].From) == 0)
+                   && centerValue.CompareTo(Intervals[centerIndex + 1].From) == 0)
             {
                 centerIndex++;
             }
@@ -305,7 +211,7 @@ namespace vertoker.UnityIntervalTree.Native
             var nodeIntervalCount = 0;
             for (; i <= max; i++)
             {
-                var interval = _intervals[i];
+                var interval = Intervals[i];
 
                 if (interval.From.CompareTo(centerValue) > 0)
                 {
@@ -325,9 +231,9 @@ namespace vertoker.UnityIntervalTree.Native
                         // this partitions the array so that all 'left' and 'center' intervals are grouped
                         // 'left' interval ordering is maintained (ascending)
                         // no data is lost, so we can work directly on the interval array and re-build in future
-                        var tmp = _intervals[i - nodeIntervalCount];
-                        _intervals[i - nodeIntervalCount] = interval;
-                        _intervals[i] = tmp;
+                        var tmp = Intervals[i - nodeIntervalCount];
+                        Intervals[i - nodeIntervalCount] = interval;
+                        Intervals[i] = tmp;
                     }
                 }
             }
@@ -336,28 +242,28 @@ namespace vertoker.UnityIntervalTree.Native
 
             // re-sort 'center' intervals
             // Array.Sort(_intervals, nodeIntervalIndex, nodeIntervalCount);
-            var intervalSlice = new NativeSlice<Interval<TKey, TValue>>(_intervals.AsArray(), nodeIntervalIndex, nodeIntervalCount);
+            var intervalSlice = new NativeSlice<Interval<TKey, TValue>>(Intervals.AsArray(), nodeIntervalIndex, nodeIntervalCount);
             intervalSlice.Sort();
 
             // add descending interval halves
 
             for (var j = nodeIntervalIndex; j < nodeIntervalIndex + nodeIntervalCount; j++)
             {
-                var interval = _intervals[j];
-                _intervalsDescending[j] = new IntervalHalf(interval.To, j);
+                var interval = Intervals[j];
+                IntervalsDescending[j] = new IntervalHalf(interval.To, j);
             }
 
             // sort descending interval halves
             // Array.Sort(_intervalsDescending, nodeIntervalIndex, nodeIntervalCount);
             // Array.Reverse(_intervalsDescending, nodeIntervalIndex, nodeIntervalCount);
-            var intervalsDescendingSlice = new NativeSlice<IntervalHalf>(_intervalsDescending.AsArray(), nodeIntervalIndex, nodeIntervalCount);
+            var intervalsDescendingSlice = new NativeSlice<IntervalHalf>(IntervalsDescending.AsArray(), nodeIntervalIndex, nodeIntervalCount);
             intervalsDescendingSlice.Sort();
             intervalsDescendingSlice.Reverse();
 
             if (nodeIntervalCount == sliceWidth)
             {
                 // all intervals stored, no need to recurse further
-                _nodes[nodeIndex] = new Node(
+                Nodes[nodeIndex] = new Node(
                     centerValue,
                     next: 0,
                     nodeIntervalIndex,
@@ -365,18 +271,18 @@ namespace vertoker.UnityIntervalTree.Native
                 return;
             }
 
-            var nextIndex = _nodes.Length;
+            var nextIndex = Nodes.Length;
 
             // add node
-            _nodes[nodeIndex] = new Node(
+            Nodes[nodeIndex] = new Node(
                 centerValue,
                 nextIndex,
                 nodeIntervalIndex,
                 nodeIntervalCount);
 
             // add two placeholder nodes to fixate the child indexes
-            _nodes.Add(new Node());
-            _nodes.Add(new Node());
+            Nodes.Add(new Node());
+            Nodes.Add(new Node());
             
             BuildRec(min, i - nodeIntervalCount - 1, nextIndex, recursionLevel); // left
             BuildRec(i, max, nextIndex + 1, recursionLevel); // right
@@ -398,13 +304,13 @@ namespace vertoker.UnityIntervalTree.Native
         public void RemoveAll<TState>(Func<Interval<TKey, TValue>, TState, bool> predicate, TState state)
         {
             var i = 0;
-            while (i < _intervals.Length)
+            while (i < Intervals.Length)
             {
-                var interval = _intervals[i];
+                var interval = Intervals[i];
                 if (predicate(interval, state))
                 {
-                    _intervals.RemoveAtSwapBack(i);
-                    _isBuilt = false;
+                    Intervals.RemoveAtSwapBack(i);
+                    IsBuilt = false;
                 }
                 else
                 {
@@ -415,11 +321,11 @@ namespace vertoker.UnityIntervalTree.Native
 
         public void Clear()
         {
-            _intervals.Clear();
-            _isBuilt = false;
+            Intervals.Clear();
+            IsBuilt = false;
         }
 
-        private readonly struct Node
+        internal readonly struct Node
         {
             public Node(TKey center, int next, int intervalIndex, int intervalCount)
             {
@@ -435,7 +341,7 @@ namespace vertoker.UnityIntervalTree.Native
             public readonly int IntervalCount;
         }
 
-        private readonly struct IntervalHalf : IComparable<IntervalHalf>
+        internal readonly struct IntervalHalf : IComparable<IntervalHalf>
         {
             public IntervalHalf(TKey start, int intervalIndex)
             {
@@ -457,9 +363,9 @@ namespace vertoker.UnityIntervalTree.Native
 
         public void Dispose()
         {
-            _intervals.Dispose();
-            _intervalsDescending.Dispose();
-            _nodes.Dispose();
+            Intervals.Dispose();
+            IntervalsDescending.Dispose();
+            Nodes.Dispose();
         }
     }
 }
