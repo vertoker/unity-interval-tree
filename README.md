@@ -1,6 +1,6 @@
 ﻿# vertoker.UnityIntervalTree
 
-Light-weight, performant interval trees written in C# for Unity. Based on [jamarino.IntervalTree](https://github.com/jamarino/IntervalTree), adapted by vertoker
+Light-weight, performant interval trees written in C# for Unity. Based on [jamarino.IntervalTree](https://github.com/jamarino/IntervalTree), adapted for Unity by vertoker
 
 Designed as a drop-in replacement for the popular [RangeTree (GitHub)](https://github.com/mbuchetics/RangeTree) package. This project provides a completely new implementation that is, from scratch, focused on reducing memory usage and allocations.
 
