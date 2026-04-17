@@ -23,7 +23,7 @@ namespace vertoker.UnityIntervalTree.Tests.Extras
 
         public void RemoveAll<TState>(Func<Interval<TKey, TValue>, TState, bool> predicate, TState state)
         {
-            throw new NotImplementedException();
+            throw new Exception();
         }
 
         public void Clear() => LightTree.Clear();

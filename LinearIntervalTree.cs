@@ -115,7 +115,7 @@ namespace vertoker.UnityIntervalTree
 
         public void Dispose()
         {
-            // TODO release managed resources here
+            
         }
     }
 }
