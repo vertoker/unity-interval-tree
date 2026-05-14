@@ -61,7 +61,7 @@ namespace vertoker.UnityIntervalTree
             if (_count == 0)
                 return Enumerable.Empty<TValue>();
 
-            List<TValue>? results = null;
+            List<TValue> results = null;
 
             for (var i = 0; i < _count; i++)
             {
@@ -79,7 +79,7 @@ namespace vertoker.UnityIntervalTree
                 results.Add(interval.Value);
             }
 
-            return results is null ? Enumerable.Empty<TValue>() : results;
+            return results ?? Enumerable.Empty<TValue>();
         }
 
         public void Remove(TValue value)

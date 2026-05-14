@@ -7,19 +7,19 @@ namespace vertoker.UnityIntervalTree
 {
     /// <summary>
     /// Query-optimized interval tree. Implementation is based on a centered interval tree.
-    /// Each interval is stored twice, and so the memory usage is higher than that of <seealso cref="LightIntervalTree"/>.
+    /// Each interval is stored twice, and so the memory usage is higher than that of LightIntervalTree/>.
     /// </summary>
-    /// <typeparam name="TKey">Type used to specify the start and end of each intervals</typeparam>
+    /// <typeparam name="TKey">Type used to specify the start and end of each interval</typeparam>
     /// <typeparam name="TValue">Type of the value associated with each interval</typeparam>
     public class QuickIntervalTree<TKey, TValue> : IBuildIntervalTree<TKey, TValue>
         where TKey : IComparable<TKey>
     {
         private Interval<TKey, TValue>[] _intervals;
-        private int _intervalCount = 0;
+        private int _intervalCount;
         private IntervalHalf[] _intervalsDescending = Array.Empty<IntervalHalf>();
         private int _treeHeight;
         private readonly List<Node> _nodes = new();
-        private bool _isBuilt = false;
+        private bool _isBuilt;
 
         /// <inheritdoc cref="QuickIntervalTree{TKey, TValue}"/>
         public QuickIntervalTree() : this(null) { }

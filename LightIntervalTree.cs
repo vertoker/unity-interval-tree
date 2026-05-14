@@ -14,9 +14,9 @@ namespace vertoker.UnityIntervalTree
         where TKey : IComparable<TKey>
     {
         private AugmentedInterval[] _intervals;
-        private int _count = 0;
-        private bool _isBuilt = false;
-        private int _treeHeight = 0;
+        private int _count;
+        private bool _isBuilt;
+        private int _treeHeight;
 
         /// <inheritdoc cref="LightIntervalTree{TKey, TValue}"/>
         public LightIntervalTree() : this(null) { }
@@ -65,7 +65,7 @@ namespace vertoker.UnityIntervalTree
             if (_count == 0)
                 return Enumerable.Empty<TValue>();
 
-            List<TValue>? results = null;
+            List<TValue> results = null;
 
             Span<int> stack = stackalloc int[2 * _treeHeight];
             stack[0] = 0;
@@ -128,7 +128,7 @@ namespace vertoker.UnityIntervalTree
                 }
             }
 
-            return results is null ? Enumerable.Empty<TValue>() : results;
+            return results ?? Enumerable.Empty<TValue>();
         }
         
         public void Build()
@@ -247,7 +247,7 @@ namespace vertoker.UnityIntervalTree
             public TKey From;
             public TKey To;
             public TKey Max;
-            public TValue Value;
+            public readonly TValue Value;
 
             public int CompareTo(AugmentedInterval other)
             {
